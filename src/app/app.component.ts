@@ -1,3 +1,4 @@
+import { HeroesComponent } from './heroes.component';
 import { Component } from '@angular/core';
 
 @Component({

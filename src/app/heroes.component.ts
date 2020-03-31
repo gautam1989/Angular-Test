@@ -1,0 +1,59 @@
+import { Component, OnInit } from '@angular/core';
+import { Hero } from './hero';
+import { HEROES } from './mock-heroes';
+import { HeroService } from './hero.service';
+import { from } from 'rxjs';
+import { FormControl } from '@angular/forms';
+import { Observable, of } from 'rxjs';
+import { debounceTime, scan, startWith, tap } from 'rxjs/operators';
+
+@Component({
+  selector: 'app-heroes',
+  templateUrl: './heroes.component.html',
+  styleUrls: ['./heroes.component.css']
+})
+export class HeroesComponent implements OnInit {
+  heroes: Hero[];
+  current = 'Start';
+  textControl = new FormControl();
+  /** Observable of array of accumulated user inputs */
+  history$: Observable<string[]>;
+
+  constructor(private heroService: HeroService) {
+    this.history$ = this.textControl.valueChanges.pipe(
+      debounceTime(500), // wait 1/2 sec until user stops
+      startWith(this.current), // initial value
+      // tap(t => console.log(t)),
+      // Accumlate input values; clear when input is empty
+      scan((acc, t) => t ? acc.concat(t) : [], [])
+    );
+   }
+
+  ngOnInit() {
+    this.getHeroes();
+  }
+
+  getHeroes(): void {
+    this.heroService.getHeroes()
+    .subscribe(heroes => this.heroes = heroes);
+  }
+
+  add(name: string): void {
+    name = name.trim();
+    if (!name) { return; }
+    this.heroService.addHero({ name } as Hero)
+      .subscribe(hero => {
+        this.heroes.push(hero);
+      });
+  }
+  delete(hero: Hero): void {
+    this.heroes = this.heroes.filter(h => h !== hero);
+    this.heroService.deleteHero(hero).subscribe();
+  }
+
+  sampleGET(): void {
+   //this.heroService.sampleGET();
+   this.heroService.sampleGET2();
+  }
+
+}
